@@ -1,5 +1,7 @@
 package peaksoft.jwtlessontest.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -20,6 +22,15 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
             "s.graduationDate," +
             "s.isBlocked)  from Student s join s.user u ")
     List<StudentResponse>findAllStudents();
+
+    @Query("select new peaksoft.jwtlessontest.dto.studentDto.StudentResponse(" +
+            "s.id," +
+            "concat(u.firstName,' ',u.lastName) ,"+
+            "u.email," +
+            "s.createdDate," +
+            "s.graduationDate," +
+            "s.isBlocked)  from Student s join s.user u ")
+    Page<StudentResponse> findAllStudents(Pageable pageable);
 
     @Query("select new peaksoft.jwtlessontest.dto.studentDto.StudentResponse(" +
             "s.id," +

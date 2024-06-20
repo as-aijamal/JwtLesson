@@ -20,6 +20,9 @@ import peaksoft.jwtlessontest.dto.authDto.SignUpRequest;
 import peaksoft.jwtlessontest.dto.userDto.UserRequest;
 import peaksoft.jwtlessontest.enitity.User;
 import peaksoft.jwtlessontest.enums.Role;
+import peaksoft.jwtlessontest.exception.AlreadyExistException;
+import peaksoft.jwtlessontest.exception.BadCredentialException;
+import peaksoft.jwtlessontest.exception.NotFoundException;
 import peaksoft.jwtlessontest.repository.UserRepository;
 import peaksoft.jwtlessontest.service.AuthenticationService;
 
@@ -52,7 +55,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public AuthenticationResponse signUp(SignUpRequest signUpRequest) {
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            throw new EntityExistsException("User with email " + signUpRequest.getEmail() + " already exists");
+            throw new AlreadyExistException("User with email " + signUpRequest.getEmail() + " already exists");
         }
 
         User user = User.builder()
@@ -76,14 +79,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public AuthenticationResponse signIn(SignInRequest signInRequest) {
         User user = userRepository.getUserByEmail(signInRequest.getEmail())
-                .orElseThrow(() -> new EntityNotFoundException(
+                .orElseThrow(() -> new NotFoundException(
                         "User with email " + signInRequest.getEmail() + " not found"));
 
         if (signInRequest.getEmail().isBlank()) {
-            throw new BadCredentialsException("Invalid email");
+            throw new BadCredentialException("Invalid email");
         }
         if (!passwordEncoder.matches(signInRequest.getPassword(), user.getPassword()))
-            throw new BadCredentialsException("Invalid password");
+            throw new BadCredentialException("Invalid password");
 
 
         String token = jwtService.generateToken(user);

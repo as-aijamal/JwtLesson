@@ -1,10 +1,12 @@
 package peaksoft.jwtlessontest.api;
 
 import jakarta.annotation.security.PermitAll;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import peaksoft.jwtlessontest.dto.SimpleResponse;
+import peaksoft.jwtlessontest.dto.studentDto.PaginationResponse;
 import peaksoft.jwtlessontest.dto.studentDto.StudentRequest;
 import peaksoft.jwtlessontest.dto.studentDto.StudentResponse;
 import peaksoft.jwtlessontest.service.StudentService;
@@ -20,7 +22,7 @@ public class StudentApi {
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ADMIN','INSTRUCTOR')")
-    public SimpleResponse saveStudent(@RequestBody StudentRequest studentRequest) {
+    public SimpleResponse saveStudent(@RequestBody @Valid StudentRequest studentRequest) {
         return studentService.saveStudent(studentRequest);
     }
 
@@ -56,5 +58,12 @@ public class StudentApi {
     public SimpleResponse deleteStudent(@PathVariable Long id){
         return studentService.deleteStudent(id);
     }
+
+    @GetMapping("/pagination")
+    public PaginationResponse pagination (@RequestParam int currentPage,
+                                          @RequestParam int pageSize){
+        return studentService.getAllStudentsWithPagination(currentPage,pageSize);
+    }
+
 
 }

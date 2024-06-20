@@ -3,6 +3,7 @@ package peaksoft.jwtlessontest.service;
 
 
 import peaksoft.jwtlessontest.dto.SimpleResponse;
+import peaksoft.jwtlessontest.dto.studentDto.PaginationResponse;
 import peaksoft.jwtlessontest.dto.studentDto.StudentRequest;
 import peaksoft.jwtlessontest.dto.studentDto.StudentResponse;
 
@@ -22,4 +23,5 @@ public interface StudentService {
 
     StudentResponse getByEmail(String email);
 
+    PaginationResponse getAllStudentsWithPagination(int currentPage, int pageSize);
 }

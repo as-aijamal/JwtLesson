@@ -3,15 +3,22 @@ package peaksoft.jwtlessontest.service.serviceImpl;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.method.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import peaksoft.jwtlessontest.dto.SimpleResponse;
+import peaksoft.jwtlessontest.dto.studentDto.PaginationResponse;
 import peaksoft.jwtlessontest.dto.studentDto.StudentRequest;
 import peaksoft.jwtlessontest.dto.studentDto.StudentResponse;
 import peaksoft.jwtlessontest.enitity.Student;
 import peaksoft.jwtlessontest.enitity.User;
 import peaksoft.jwtlessontest.enums.Role;
+import peaksoft.jwtlessontest.exception.NotFoundException;
 import peaksoft.jwtlessontest.repository.StudentRepository;
 import peaksoft.jwtlessontest.repository.UserRepository;
 import peaksoft.jwtlessontest.service.StudentService;
@@ -22,6 +29,7 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class StudentServiceImpl implements StudentService {
 
     private final StudentRepository studentRepository;
@@ -44,6 +52,7 @@ public class StudentServiceImpl implements StudentService {
         student.setBlocked(false);
         student.setUser(user);
         studentRepository.save(student);
+        log.info("Student with id {} is saved", student.getId());
         return new SimpleResponse(
                 HttpStatus.OK,
                 "Student with id " + student.getId() + " is saved"
@@ -59,7 +68,12 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public StudentResponse getStudentById(Long id) {
         return studentRepository.getStudentById(id).orElseThrow(
-                () -> new NullPointerException(String.format("Student with id %d not found", id)));
+                () -> {
+                    String message = "Student with id " + id + " not found";
+                    log.error(message);
+                  return  new NotFoundException(message);
+
+                });
     }
 
 
@@ -86,12 +100,12 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public SimpleResponse deleteStudent(Long id) {
         if (!studentRepository.existsById(id)) {
-            throw new EntityNotFoundException("Student with id " + id + " not found");
+            throw new NotFoundException("Student with id " + id + " not found");
         }
         studentRepository.deleteById(id);
-        return  SimpleResponse.builder()
+        return SimpleResponse.builder()
                 .httpStatus(HttpStatus.OK)
-                .message( "Student with id " + id + " was deleted")
+                .message("Student with id " + id + " was deleted")
                 .build();
 
     }
@@ -100,4 +114,18 @@ public class StudentServiceImpl implements StudentService {
     public StudentResponse getByEmail(String email) {
         return studentRepository.getStudentByEmail(email);
     }
+
+    @Override
+    public PaginationResponse getAllStudentsWithPagination(int currentPage, int pageSize) {
+
+        Pageable pageable= PageRequest.of(currentPage-1,pageSize);
+        Page<StudentResponse> allStudents = studentRepository.findAllStudents(pageable);
+        return PaginationResponse.builder()
+                .students(allStudents.getContent())
+                .currentPage(allStudents.getNumber()+1)
+                .pageSize(allStudents.getTotalPages())
+                .build();
+    }
+
+
 }
